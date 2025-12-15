@@ -1,0 +1,137 @@
+body {
+  margin: 0;
+  font-family: 'Poppins', sans-serif;
+  transition: background 0.5s;
+}
+
+.dark {
+  background: radial-gradient(circle, #0a1a2f, #020b18);
+  color: white;
+}
+
+.light {
+  background: #f2f2f2;
+  color: black;
+}
+
+.light .navbar {
+  background: #ffffff;
+  color: black;
+}
+
+.light .cell {
+  background: #ffffff;
+  color: black;
+}
+
+.hidden {
+  display: none;
+}
+
+.center-screen {
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+}
+
+.start-btn {
+  font-size: 40px;
+  padding: 20px 60px;
+  border-radius: 50px;
+  border: none;
+  background: linear-gradient(90deg, cyan, blue);
+  color: black;
+  cursor: pointer;
+  box-shadow: 0 0 20px cyan;
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0% { box-shadow: 0 0 20px cyan; }
+  50% { box-shadow: 0 0 40px cyan; }
+  100% { box-shadow: 0 0 20px cyan; }
+}
+
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  padding: 15px;
+  background: rgba(0,0,0,0.3);
+}
+
+.board {
+  display: grid;
+  grid-template-columns: repeat(3, 120px);
+  gap: 10px;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+.cell {
+  width: 120px;
+  height: 120px;
+  font-size: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border-radius: 15px;
+  background: rgba(255,255,255,0.1);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.cell:hover {
+  transform: scale(1.05);
+}
+
+.cell.X {
+  color: cyan;
+  text-shadow: 0 0 15px cyan;
+}
+
+.cell.O {
+  color: pink;
+  text-shadow: 0 0 15px pink;
+}
+
+.win {
+  box-shadow: 0 0 25px yellow;
+}
+.winner {
+  font-size: 60px;
+  text-align: center;
+  margin-top: 20px;
+  color: yellow;
+  text-shadow: 0 0 30px yellow;
+}
+
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.modal-content {
+  background: #111;
+  padding: 40px;
+  border-radius: 20px;
+  text-align: center;
+  box-shadow: 0 0 30px cyan;
+}
+
+.modal-content h1 {
+  font-size: 50px;
+  margin-bottom: 20px;
+  color: yellow;
+}
+.hidden {
+  display: none !important;
+}

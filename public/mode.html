@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Select Mode</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="dark center-screen">
+
+<button onclick="selectMode('computer')">ME vs COMPUTER</button>
+<button onclick="startFriend()">ME vs FRIEND</button>
+
+<script>
+function selectMode(mode) {
+  localStorage.setItem("mode", mode);
+
+  if (mode === "computer") {
+    location.href = "difficulty.html";
+  } else {
+    location.href = "game.html";
+  }
+}
+function startFriend() {
+  localStorage.setItem("mode", "friend");
+  location.href = "friend.html";
+}
+</script>
+
+</body>
+</html>

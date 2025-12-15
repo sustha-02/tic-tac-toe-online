@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Select Difficulty</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="dark center-screen">
+
+<h1>Select Difficulty</h1>
+
+<button onclick="setLevel('easy')">EASY</button>
+<button onclick="setLevel('medium')">MEDIUM</button>
+<button onclick="setLevel('hard')">HARD</button>
+
+<script>
+function setLevel(level) {
+  localStorage.setItem("difficulty", level);
+  location.href = "game.html";
+}
+</script>
+
+</body>
+</html>

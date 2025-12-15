@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Online Game</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="dark center-screen">
+
+<h2>Online Tic Tac Toe</h2>
+
+<input id="username" placeholder="Enter your name" />
+<br><br>
+
+<button onclick="createRoom()">Create Room</button>
+
+<br><br><br>
+
+<input id="code" placeholder="Enter room code" />
+<br><br>
+
+<button onclick="joinRoom()">Join Room</button>
+
+<p id="status"></p>
+
+<!-- IMPORTANT -->
+<script src="/socket.io/socket.io.js"></script>
+
+<script>
+  const socket = io();
+  const status = document.getElementById("status");
+
+  socket.on("connect", () => {
+    console.log("Socket connected:", socket.id);
+    status.innerText = "Connected to server ✅";
+  });
+
+  function createRoom() {
+    const name = document.getElementById("username").value;
+    if (!name) {
+      alert("Enter your name");
+      return;
+    }
+
+    console.log("Creating room for:", name);
+    socket.emit("createRoom", name);
+  }
+
+  function joinRoom() {
+    const name = document.getElementById("username").value;
+    const code = document.getElementById("code").value;
+
+    if (!name || !code) {
+      alert("Enter name and code");
+      return;
+    }
+
+    socket.emit("joinRoom", { code, username: name });
+  }
+
+  socket.on("roomCreated", ({ code, symbol }) => {
+    console.log("Room created:", code);
+
+    localStorage.setItem("roomCode", code);
+    localStorage.setItem("symbol", symbol);
+
+    status.innerText = "Room Code: " + code + " (Share this)";
+  });
+
+  socket.on("startOnlineGame", () => {
+    location.href = "online-game.html";
+  });
+
+  socket.on("invalidRoom", () => {
+    alert("Invalid or full room");
+  });
+</script>
+
+</body>
+</html>
