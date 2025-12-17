@@ -4,26 +4,40 @@
   <title>Select Mode</title>
   <link rel="stylesheet" href="style.css">
 </head>
+
 <body class="dark center-screen">
+  <div class="glass-container">
 
-<button onclick="selectMode('computer')">ME vs COMPUTER</button>
-<button onclick="startFriend()">ME vs FRIEND</button>
+    <h1 class="title">Choose Game Mode</h1>
+    <p class="subtitle">Play solo or challenge a friend online</p>
 
-<script>
-function selectMode(mode) {
-  localStorage.setItem("mode", mode);
+    <div class="card-grid">
 
-  if (mode === "computer") {
-    location.href = "difficulty.html";
-  } else {
-    location.href = "game.html";
-  }
-}
-function startFriend() {
-  localStorage.setItem("mode", "friend");
-  location.href = "friend.html";
-}
-</script>
+      <div class="glass-card" onclick="goComputer()">
+        <h2>🤖</h2>
+        <h3>Me vs Computer</h3>
+        <p>Play against AI</p>
+      </div>
 
+      <div class="glass-card" onclick="goFriend()">
+        <h2>👥</h2>
+        <h3>Me vs Friend</h3>
+        <p>Play online with room code</p>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    function goComputer() {
+      localStorage.setItem("mode", "computer");
+      location.href = "difficulty.html";
+    }
+
+    function goFriend() {
+      localStorage.setItem("mode", "friend");
+      location.href = "friend.html";
+    }
+  </script>
 </body>
 </html>

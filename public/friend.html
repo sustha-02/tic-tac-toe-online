@@ -1,79 +1,100 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Online Game</title>
+  <title>Online Tic Tac Toe</title>
   <link rel="stylesheet" href="style.css">
 </head>
+
 <body class="dark center-screen">
 
-<h2>Online Tic Tac Toe</h2>
+  <div class="particles"></div>
+  <div class="glass-container">
 
-<input id="username" placeholder="Enter your name" />
-<br><br>
+    <h1 class="title">Play Online</h1>
+    <p class="subtitle">Create a room or join your friend</p>
 
-<button onclick="createRoom()">Create Room</button>
+    <div class="card-grid two">
 
-<br><br><br>
+      <!-- CREATE ROOM -->
+      <div class="glass-card" onclick="createRoom()">
+        <h2>🎮</h2>
+        <h3>Create Room</h3>
+        <input id="username" placeholder="Your name" />
+        <p class="hint">Share room code with friend</p>
+      </div>
 
-<input id="code" placeholder="Enter room code" />
-<br><br>
+      <!-- JOIN ROOM -->
+      <div class="glass-card" onclick="joinRoom()">
+        <h2>🔑</h2>
+        <h3>Join Room</h3>
+        <input id="joinName" placeholder="Your name" />
+        <input id="code" placeholder="Room code" />
+        <p class="hint">Enter code provided by friend</p>
+      </div>
 
-<button onclick="joinRoom()">Join Room</button>
+    </div>
 
-<p id="status"></p>
+    <p id="status" class="status-text"></p>
 
-<!-- IMPORTANT -->
-<script src="/socket.io/socket.io.js"></script>
+  </div>
 
-<script>
-  const socket = io();
-  const status = document.getElementById("status");
+  <script src="/socket.io/socket.io.js"></script>
 
-  socket.on("connect", () => {
-    console.log("Socket connected:", socket.id);
-    status.innerText = "Connected to server ✅";
-  });
+  <script>
+    const socket = io();
+    const status = document.getElementById("status");
 
-  function createRoom() {
-    const name = document.getElementById("username").value;
-    if (!name) {
-      alert("Enter your name");
-      return;
+    socket.on("connect", () => {
+      status.innerText = "Connected to server ✅";
+    });
+
+    function createRoom() {
+      const name = document.getElementById("username").value;
+      if (!name) {
+        alert("Enter your name");
+        return;
+      }
+      socket.emit("createRoom", name);
     }
 
-    console.log("Creating room for:", name);
-    socket.emit("createRoom", name);
-  }
+    function joinRoom() {
+      const name = document.getElementById("joinName").value;
+      const code = document.getElementById("code").value.toUpperCase();
 
-  function joinRoom() {
-    const name = document.getElementById("username").value;
-    const code = document.getElementById("code").value;
+      if (!name || !code) {
+        alert("Enter name and room code");
+        return;
+      }
 
-    if (!name || !code) {
-      alert("Enter name and code");
-      return;
+      socket.emit("joinRoom", { code, username: name });
     }
 
-    socket.emit("joinRoom", { code, username: name });
-  }
+    socket.on("roomCreated", ({ code, symbol }) => {
+      localStorage.setItem("roomCode", code);
+      localStorage.setItem("symbol", symbol);
+      status.innerHTML = `
+      Room Code: <b>${code}</b>
+      <button onclick="copyCode('${code}')">Copy</button>
+`;
 
-  socket.on("roomCreated", ({ code, symbol }) => {
-    console.log("Room created:", code);
+    });
 
-    localStorage.setItem("roomCode", code);
-    localStorage.setItem("symbol", symbol);
+    socket.on("startOnlineGame", () => {
+      location.href = "online-game.html";
+    });
 
-    status.innerText = "Room Code: " + code + " (Share this)";
-  });
+    socket.on("invalidRoom", () => {
+      status.innerText = "Invalid or full room ❌";
+    });
 
-  socket.on("startOnlineGame", () => {
-    location.href = "online-game.html";
-  });
+    function copyCode(code) {
+      navigator.clipboard.writeText(code);
+      status.innerText = "Room code copied ✅";
+    }
 
-  socket.on("invalidRoom", () => {
-    alert("Invalid or full room");
-  });
-</script>
+  </script>
+
+
 
 </body>
 </html>

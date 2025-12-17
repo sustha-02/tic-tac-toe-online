@@ -1,6 +1,10 @@
 /***********************
  * GLOBAL STATE
  ***********************/
+const clickSound = new Audio("sounds/click.mp3");
+const winSound = new Audio("sounds/win.mp3");
+const drawSound = new Audio("sounds/draw.mp3");
+
 let board = Array(9).fill("");
 let userTurn = true;
 let gameOver = false;
@@ -21,15 +25,19 @@ createBoard();
  * BOARD CREATION / RESET
  ***********************/
 function createBoard() {
-  // reset game state
   board = Array(9).fill("");
   userTurn = true;
   gameOver = false;
 
-  // hide modal safely
+  // ✅ HIDE STRIKE HERE
+  const strike = document.getElementById("strike");
+  if (strike) {
+    strike.classList.add("hidden");
+    strike.style.transform = "translate(-50%, -50%) scaleX(0)";
+  }
+
   if (resultModal) resultModal.classList.add("hidden");
 
-  // clear board UI
   boardDiv.innerHTML = "";
 
   for (let i = 0; i < 9; i++) {
@@ -40,6 +48,7 @@ function createBoard() {
   }
 }
 
+
 /***********************
  * USER MOVE
  ***********************/
@@ -49,6 +58,9 @@ function userMove(index) {
   if (board[index] !== "") return;
 
   board[index] = "X";
+  clickSound.currentTime = 0;
+  clickSound.play();
+
   updateUI();
 
   if (checkWin("X")) return;
@@ -154,13 +166,21 @@ function updateUI() {
  ***********************/
 function checkWin(player) {
   const wins = [
-    [0,1,2],[3,4,5],[6,7,8],
-    [0,3,6],[1,4,7],[2,5,8],
-    [0,4,8],[2,4,6]
+    { combo: [0,1,2], angle: 0, top: "25%" },
+    { combo: [3,4,5], angle: 0, top: "50%" },
+    { combo: [6,7,8], angle: 0, top: "75%" },
+
+    { combo: [0,3,6], angle: 90, left: "25%" },
+    { combo: [1,4,7], angle: 90, left: "50%" },
+    { combo: [2,5,8], angle: 90, left: "75%" },
+
+    { combo: [0,4,8], angle: 45 },
+    { combo: [2,4,6], angle: -45 }
   ];
 
-  for (let combo of wins) {
-    if (combo.every(i => board[i] === player)) {
+  for (let win of wins) {
+    if (win.combo.every(i => board[i] === player)) {
+      showStrike(win);
       showWinner(player);
       return true;
     }
@@ -174,6 +194,7 @@ function checkWin(player) {
   return false;
 }
 
+
 /***********************
  * RESULT MODAL
  ***********************/
@@ -182,12 +203,15 @@ function showWinner(player) {
 
   if (player === "DRAW") {
     resultText.innerText = "IT'S A DRAW!";
+    drawSound.play();
   } else {
     resultText.innerText = player + " WON 🎉";
+    winSound.play();
   }
 
   resultModal.classList.remove("hidden");
 }
+
 
 function restartGame() {
   createBoard();
@@ -203,4 +227,34 @@ function exitGame() {
 function toggleTheme() {
   document.body.classList.toggle("dark");
   document.body.classList.toggle("light");
+}
+
+/***********************
+ * ANIMATION STRIKE
+ ***********************/
+
+function showStrike(win) {
+  const strike = document.getElementById("strike");
+
+  strike.classList.remove("hidden");
+
+  // reset animation first
+  strike.style.transition = "none";
+  strike.style.transform = "translate(-50%, -50%) scaleX(0)";
+
+  if (win.top) strike.style.top = win.top;
+  if (win.left) strike.style.left = win.left;
+
+  // allow animation
+  setTimeout(() => {
+    strike.style.transition = "transform 0.4s ease";
+    strike.style.transform =
+      `translate(-50%, -50%) rotate(${win.angle || 0}deg) scaleX(1)`;
+  }, 50);
+}
+
+
+function clearStrike() {
+  const strike = document.getElementById("strike");
+  if (strike) strike.remove();
 }

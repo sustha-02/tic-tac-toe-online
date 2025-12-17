@@ -4,20 +4,41 @@
   <title>Select Difficulty</title>
   <link rel="stylesheet" href="style.css">
 </head>
+
 <body class="dark center-screen">
+  <div class="glass-container">
 
-<h1>Select Difficulty</h1>
+    <h1 class="title">Select Difficulty</h1>
+    <p class="subtitle">How strong should the AI be?</p>
 
-<button onclick="setLevel('easy')">EASY</button>
-<button onclick="setLevel('medium')">MEDIUM</button>
-<button onclick="setLevel('hard')">HARD</button>
+    <div class="card-grid">
 
-<script>
-function setLevel(level) {
-  localStorage.setItem("difficulty", level);
-  location.href = "game.html";
-}
-</script>
+      <div class="glass-card easy" onclick="startGame('easy')">
+        <h2>🙂</h2>
+        <h3>Easy</h3>
+        <p>Relax & play</p>
+      </div>
 
+      <div class="glass-card medium" onclick="startGame('medium')">
+        <h2>😎</h2>
+        <h3>Medium</h3>
+        <p>A fair challenge</p>
+      </div>
+
+      <div class="glass-card hard" onclick="startGame('hard')">
+        <h2>🔥</h2>
+        <h3>Hard</h3>
+        <p>Unbeatable AI</p>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    function startGame(level) {
+      localStorage.setItem("difficulty", level);
+      location.href = "game.html";
+    }
+  </script>
 </body>
 </html>

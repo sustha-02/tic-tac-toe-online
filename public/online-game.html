@@ -6,10 +6,49 @@
 </head>
 <body class="dark">
 
-<h2 id="turnText"></h2>
-<div id="board" class="board"></div>
+  <div class="top-bar">
+    <div class="scoreboard">
+      <span id="scoreX">0</span> : <span id="scoreO">0</span>
+    </div>
 
-<script src="/socket.io/socket.io.js"></script>
-<script src="online.js"></script>
+  <div class="player X" id="playerX">X</div>
+  <div class="room-info">
+    <span id="turnText">Waiting...</span>
+  </div>
+  <div class="player O" id="playerO">O</div>
+</div>
+
+
+  <!-- BOARD CONTAINER -->
+  <div class="board-wrapper">
+    <div id="board" class="board"></div>
+    
+    <div class="chat-box">
+  <div id="messages"></div>
+
+  <div class="chat-input">
+    <input id="chatInput" placeholder="Type a message..." />
+    <button onclick="sendMessage()">Send</button>
+  </div>
+</div>
+
+
+    <!-- STRIKE LINE -->
+    <div id="strike" class="strike hidden"></div>
+  </div>
+
+  <!-- RESULT MODAL -->
+  <div id="resultModal" class="modal hidden">
+    <div class="modal-content">
+      <h1 id="resultText"></h1>
+
+      <!-- ✅ THESE ARE THE BUTTONS YOU ASKED ABOUT -->
+      <button onclick="requestRematch()">REMATCH</button>
+      <button onclick="exitGame()">EXIT</button>
+    </div>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="online.js"></script>
 </body>
 </html>
