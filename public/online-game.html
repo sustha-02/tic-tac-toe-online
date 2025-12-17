@@ -4,51 +4,63 @@
   <title>Online Tic Tac Toe</title>
   <link rel="stylesheet" href="style.css">
 </head>
+
 <body class="dark">
 
+  <!-- ================= TOP BAR ================= -->
   <div class="top-bar">
     <div class="scoreboard">
       <span id="scoreX">0</span> : <span id="scoreO">0</span>
     </div>
 
-  <div class="player X" id="playerX">X</div>
-  <div class="room-info">
-    <span id="turnText">Waiting...</span>
+    <div class="player X" id="playerX">X</div>
+
+    <div class="room-info">
+      <span id="status">Waiting...</span>
+    </div>
+
+    <div class="player O" id="playerO">O</div>
   </div>
-  <div class="player O" id="playerO">O</div>
-</div>
 
+  <!-- ================= WAITING SCREEN ================= -->
+  <div id="waiting" class="waiting-screen">
+    <h2>Waiting for opponent...</h2>
+    <p>Share the room code with your friend</p>
+  </div>
 
-  <!-- BOARD CONTAINER -->
-  <div class="board-wrapper">
-    <div id="board" class="board"></div>
-    
+  <!-- ================= GAME SCREEN (HIDDEN INITIALLY) ================= -->
+  <div id="game" class="hidden">
+
+    <!-- BOARD + STRIKE -->
+    <div class="board-wrapper">
+      <div id="board" class="board"></div>
+      <div id="strike" class="strike hidden"></div>
+    </div>
+
+    <!-- CHAT -->
     <div class="chat-box">
-  <div id="messages"></div>
+      <div id="messages" class="messages"></div>
 
-  <div class="chat-input">
-    <input id="chatInput" placeholder="Type a message..." />
-    <button onclick="sendMessage()">Send</button>
-  </div>
-</div>
+      <div class="chat-input">
+        <input id="chatInput" placeholder="Type a message..." />
+        <button onclick="sendMessage()">Send</button>
+      </div>
+    </div>
 
-
-    <!-- STRIKE LINE -->
-    <div id="strike" class="strike hidden"></div>
   </div>
 
-  <!-- RESULT MODAL -->
+  <!-- ================= RESULT MODAL ================= -->
   <div id="resultModal" class="modal hidden">
     <div class="modal-content">
       <h1 id="resultText"></h1>
-
-      <!-- ✅ THESE ARE THE BUTTONS YOU ASKED ABOUT -->
       <button onclick="requestRematch()">REMATCH</button>
       <button onclick="exitGame()">EXIT</button>
     </div>
   </div>
 
+  <!-- ================= SCRIPTS ================= -->
   <script src="/socket.io/socket.io.js"></script>
   <script src="online.js"></script>
+
 </body>
 </html>

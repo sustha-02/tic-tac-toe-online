@@ -379,4 +379,17 @@ body {
 .chat-input input {
   flex: 1;
 }
+#messages {
+  max-height: 200px;
+  overflow-y: auto;
+  margin-top: 10px;
+}
+.hidden {
+  display: none;
+}
 
+.waiting-screen {
+  text-align: center;
+  margin-top: 120px;
+  color: white;
+}

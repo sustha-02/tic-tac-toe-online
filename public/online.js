@@ -1,196 +1,257 @@
+/*************************
+ * SOCKET INIT
+ *************************/
 const socket = io();
 
-/* -----------------------------
-   STATE
------------------------------ */
-let board = Array(9).fill("");
-let mySymbol = localStorage.getItem("symbol");
+/*************************
+ * GLOBAL STATE
+ *************************/
 let roomCode = localStorage.getItem("roomCode");
-let currentTurn = "X";
+let playerName = localStorage.getItem("playerName");
+
+let board = Array(9).fill("");
+let mySymbol = "X";
+let myTurn = false;
 let gameOver = false;
 
-let score = { X: 0, O: 0 };
+let scoreX = 0;
+let scoreO = 0;
 
-/* -----------------------------
-   ELEMENTS
------------------------------ */
-const cells = document.querySelectorAll(".cell");
-const turnText = document.getElementById("turnText");
-const playerX = document.getElementById("playerX");
-const playerO = document.getElementById("playerO");
+/*************************
+ * ELEMENTS
+ *************************/
+const boardDiv = document.getElementById("board");
+const statusText = document.getElementById("status");
+const messagesDiv = document.getElementById("messages");
+const chatInput = document.getElementById("chatInput");
 
-const scoreX = document.getElementById("scoreX");
-const scoreO = document.getElementById("scoreO");
+/*************************
+ * INIT
+ *************************/
+createBoard();
+showWaiting();
 
-const modal = document.getElementById("resultModal");
-const resultText = document.getElementById("resultText");
+/*************************
+ * SOCKET EVENTS
+ *************************/
 
-/* -----------------------------
-   SOUNDS
------------------------------ */
-const clickSound = new Audio("sounds/click.mp3");
-const winSound = new Audio("sounds/win.mp3");
-
-/* -----------------------------
-   INIT
------------------------------ */
-cells.forEach((cell, index) => {
-  cell.addEventListener("click", () => {
-    if (gameOver) return;
-    if (currentTurn !== mySymbol) return;
-    if (board[index] !== "") return;
-
-    socket.emit("playerMove", { code: roomCode, index });
-  });
-});
-
-/* -----------------------------
-   SOCKET EVENTS
------------------------------ */
-
+// GAME START
 socket.on("startOnlineGame", () => {
-  console.log("GAME STARTED");
-});
+  console.log("ONLINE GAME STARTED");
 
-socket.on("startOnlineGame", ({ names, turn }) => {
-  playerX.innerText = names.X;
-  playerO.innerText = names.O;
   document.getElementById("waiting").classList.add("hidden");
   document.getElementById("game").classList.remove("hidden");
 
-  currentTurn = turn;
-  updateTurn(turn);
+  statusText.innerText = "Game started!";
+  resetBoard();
 });
 
-socket.on("updateBoard", ({ board: newBoard, turn }) => {
-  board = newBoard;
-  currentTurn = turn;
-
+// PLAYER MOVE FROM OPPONENT
+socket.on("playerMove", ({ index, symbol }) => {
+  board[index] = symbol;
   updateUI();
-  updateTurn(turn);
+
+  if (checkWin(symbol)) return;
+
+  myTurn = true;
+  statusText.innerText = "Your turn";
 });
 
-socket.on("gameOver", ({ board: newBoard, winner, combo }) => {
-  board = newBoard;
+// CHAT MESSAGE
+socket.on("chatMessage", ({ sender, text }) => {
+  const div = document.createElement("div");
+  div.innerHTML = `<strong>${sender}:</strong> ${text}`;
+  messagesDiv.appendChild(div);
+  messagesDiv.scrollTop = messagesDiv.scrollHeight;
+});
+
+// REMATCH
+socket.on("rematch", () => {
+  resetBoard();
+  statusText.innerText = myTurn ? "Your turn" : "Opponent's turn";
+});
+
+// OPPONENT LEFT
+socket.on("opponentLeft", () => {
+  statusText.innerText = "Opponent left the game";
   gameOver = true;
-
-  updateUI();
-
-  if (combo && combo.length) {
-    drawStrike(combo);
-  }
-
-  if (winner !== "DRAW") {
-    winSound.play();
-    score[winner]++;
-    document.getElementById("score" + winner).innerText = score[winner];
-    resultText.innerText = `${winner} WON 🎉`;
-  } else {
-    resultText.innerText = "IT'S A DRAW!";
-  }
-
-  modal.classList.remove("hidden");
 });
 
-socket.on("rematchStarted", ({ board: newBoard, turn }) => {
-  board = newBoard;
-  currentTurn = turn;
-  gameOver = false;
+/*************************
+ * ROOM ACTIONS
+ *************************/
+function createRoom() {
+  const name = document.getElementById("nameInput").value.trim();
+  if (!name) return alert("Enter your name");
 
-  clearStrike();
-  updateUI();
-  updateTurn(turn);
+  playerName = name;
+  localStorage.setItem("playerName", name);
 
-  modal.classList.add("hidden");
-});
+  socket.emit("createRoom", { name }, ({ code }) => {
+    roomCode = code;
+    localStorage.setItem("roomCode", code);
 
-/* -----------------------------
-   UI FUNCTIONS
------------------------------ */
-function updateUI() {
-  cells.forEach((cell, i) => {
-    cell.innerText = board[i];
+    document.getElementById("roomCode").innerText = code;
+    showWaiting();
   });
 }
 
-function updateTurn(turn) {
-  playerX.classList.remove("active");
-  playerO.classList.remove("active");
+function joinRoom() {
+  const name = document.getElementById("nameInput").value.trim();
+  const code = document.getElementById("roomInput").value.trim();
 
-  if (turn === mySymbol) {
-    turnText.innerText = "Your Turn";
-  } else {
-    turnText.innerText = "Opponent Turn";
-  }
+  if (!name || !code) return alert("Enter name and room code");
 
-  document.getElementById("player" + turn).classList.add("active");
+  playerName = name;
+  roomCode = code;
+
+  localStorage.setItem("playerName", name);
+  localStorage.setItem("roomCode", code);
+
+  socket.emit("joinRoom", { code, name }, (res) => {
+    if (res?.error) {
+      alert(res.error);
+      return;
+    }
+
+    mySymbol = "O";
+    myTurn = false;
+    showWaiting();
+  });
 }
 
-/* -----------------------------
-   STRIKE LINE
------------------------------ */
+/*************************
+ * GAME LOGIC
+ *************************/
+function createBoard() {
+  boardDiv.innerHTML = "";
+  for (let i = 0; i < 9; i++) {
+    const cell = document.createElement("div");
+    cell.className = "cell";
+    cell.onclick = () => handleMove(i);
+    boardDiv.appendChild(cell);
+  }
+}
+
+function handleMove(index) {
+  if (!myTurn || gameOver || board[index] !== "") return;
+
+  board[index] = mySymbol;
+  updateUI();
+
+  socket.emit("playerMove", {
+    code: roomCode,
+    index,
+    symbol: mySymbol
+  });
+
+  if (checkWin(mySymbol)) return;
+
+  myTurn = false;
+  statusText.innerText = "Opponent's turn";
+}
+
+function updateUI() {
+  document.querySelectorAll(".cell").forEach((cell, i) => {
+    cell.innerText = board[i];
+    cell.className = `cell ${board[i]}`;
+  });
+}
+
+function resetBoard() {
+  board = Array(9).fill("");
+  gameOver = false;
+  clearStrike();
+  updateUI();
+
+  myTurn = mySymbol === "X";
+  statusText.innerText = myTurn ? "Your turn" : "Opponent's turn";
+}
+
+/*************************
+ * WIN CHECK
+ *************************/
+function checkWin(player) {
+  const wins = [
+    [0,1,2],[3,4,5],[6,7,8],
+    [0,3,6],[1,4,7],[2,5,8],
+    [0,4,8],[2,4,6]
+  ];
+
+  for (let combo of wins) {
+    if (combo.every(i => board[i] === player)) {
+      gameOver = true;
+      drawStrike(combo);
+
+      if (player === "X") scoreX++;
+      if (player === "O") scoreO++;
+
+      updateScore();
+      statusText.innerText = player === mySymbol ? "You won 🎉" : "You lost 😢";
+      return true;
+    }
+  }
+
+  if (!board.includes("")) {
+    gameOver = true;
+    statusText.innerText = "It's a draw!";
+    return true;
+  }
+
+  return false;
+}
+
+/*************************
+ * STRIKE LINE
+ *************************/
 function drawStrike(combo) {
-  const strike = document.createElement("div");
-  strike.id = "strike";
-  strike.className = "strike";
+  const strike = document.getElementById("strike");
+  strike.classList.remove("hidden");
 
-  const maps = {
-    "0,1,2": "row1",
-    "3,4,5": "row2",
-    "6,7,8": "row3",
-    "0,3,6": "col1",
-    "1,4,7": "col2",
-    "2,5,8": "col3",
-    "0,4,8": "diag1",
-    "2,4,6": "diag2"
-  };
-
-  strike.classList.add(maps[combo.join(",")]);
-  document.querySelector(".board").appendChild(strike);
+  if (combo.toString() === "0,1,2") strike.style.top = "25%";
+  else if (combo.toString() === "3,4,5") strike.style.top = "50%";
+  else if (combo.toString() === "6,7,8") strike.style.top = "75%";
+  else if (combo.toString() === "0,3,6") strike.style.left = "25%";
+  else if (combo.toString() === "1,4,7") strike.style.left = "50%";
+  else if (combo.toString() === "2,5,8") strike.style.left = "75%";
 }
 
 function clearStrike() {
   const strike = document.getElementById("strike");
-  if (strike) strike.remove();
+  strike.classList.add("hidden");
 }
 
-/* -----------------------------
-   BUTTON ACTIONS
------------------------------ */
-function playAgain() {
-  socket.emit("rematch", roomCode);
-}
-
-function exitGame() {
-  location.href = "friend.html";
-}
-
-/* -----------------------------
-   EXPOSE FUNCTIONS
------------------------------ */
-window.playAgain = playAgain;
-window.exitGame = exitGame;
-
+/*************************
+ * CHAT
+ *************************/
 function sendMessage() {
-  const input = document.getElementById("chatInput");
-  if (!input.value.trim()) return;
+  const text = chatInput.value.trim();
+  if (!text) return;
 
   socket.emit("chatMessage", {
-  code: roomCode,
-  text: input.value,
-  sender: playerName
+    code: roomCode,
+    text,
+    sender: playerName
   });
 
-  input.value = "";
+  chatInput.value = "";
 }
 
-socket.on("chatMessage", (data) => {
-  io.to(data.code).emit("chatMessage", data);
-});
+/*************************
+ * UI HELPERS
+ *************************/
+function showWaiting() {
+  document.getElementById("waiting").classList.remove("hidden");
+  document.getElementById("game").classList.add("hidden");
+  statusText.innerText = "Waiting for opponent...";
+}
 
-socket.on("chatMessage", (msg) => {
-  const div = document.createElement("div");
-  div.innerHTML = `<strong>${msg.sender}:</strong> ${msg.text}`;
-  document.getElementById("messages").appendChild(div);
-});
+function updateScore() {
+  document.getElementById("scoreX").innerText = scoreX;
+  document.getElementById("scoreO").innerText = scoreO;
+}
+
+function requestRematch() {
+  socket.emit("rematch", { code: roomCode });
+}
 
