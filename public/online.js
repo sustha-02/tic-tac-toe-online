@@ -47,9 +47,16 @@ cells.forEach((cell, index) => {
 /* -----------------------------
    SOCKET EVENTS
 ----------------------------- */
+
+socket.on("startOnlineGame", () => {
+  console.log("GAME STARTED");
+});
+
 socket.on("startOnlineGame", ({ names, turn }) => {
   playerX.innerText = names.X;
   playerO.innerText = names.O;
+  document.getElementById("waiting").classList.add("hidden");
+  document.getElementById("game").classList.remove("hidden");
 
   currentTurn = turn;
   updateTurn(turn);
@@ -169,15 +176,21 @@ function sendMessage() {
   if (!input.value.trim()) return;
 
   socket.emit("chatMessage", {
-    code: roomCode,
-    text: input.value
+  code: roomCode,
+  text: input.value,
+  sender: playerName
   });
 
   input.value = "";
 }
-socket.on("chatMessage", ({ name, avatar, text }) => {
-  const msg = document.createElement("div");
-  msg.className = "message";
-  msg.innerText = `${avatar} ${name}: ${text}`;
-  document.getElementById("messages").appendChild(msg);
+
+socket.on("chatMessage", (data) => {
+  io.to(data.code).emit("chatMessage", data);
 });
+
+socket.on("chatMessage", (msg) => {
+  const div = document.createElement("div");
+  div.innerHTML = `<strong>${msg.sender}:</strong> ${msg.text}`;
+  document.getElementById("messages").appendChild(div);
+});
+

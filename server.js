@@ -100,6 +100,11 @@ io.on("connection", (socket) => {
   socket.on("joinRoom", ({ code, username }) => {
     const room = rooms[code];
 
+    if (room.players.length === 2) {
+      io.to(code).emit("startOnlineGame");
+    }
+
+
     if (!room || room.players.O) {
       socket.emit("invalidRoom");
       return;
